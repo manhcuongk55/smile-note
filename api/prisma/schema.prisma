@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// SQLite doesn't support enums, using String with validation in code
+// ENUM: LOW, MEDIUM, HIGH, URGENT
+// ENUM: PENDING, IN_PROGRESS, DONE
+// ENUM: SHOW_ROOM, MOVE_IN, MOVE_OUT, MAINTENANCE_CHECK, MAINTENANCE_SUPERVISION, PAYMENT_COLLECTION, ROOM_INSPECTION, FOLLOW_UP
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  buildings Building[]
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  password       String
+  name           String
+  role           String       // ADMIN, MANAGER, TECHNICIAN
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  tasks          Task[]       @relation("AssignedTasks")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+}
+
+model Building {
+  id             String       @id @default(uuid())
+  name           String
+  address        String
+  latitude       Float?
+  longitude      Float?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  rooms          Room[]
+  tasks          Task[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  number      String
+  floor       Int
+  buildingId  String
+  building    Building @relation(fields: [buildingId], references: [id])
+  tasks       Task[]
+  status      String   // OCCUPIED, VACANT, MAINTENANCE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Task {
+  id                String     @id @default(uuid())
+  type              String
+  priority          String     @default("MEDIUM")
+  status            String     @default("PENDING")
+  scheduledTime     DateTime?
+  estimatedDuration Int?       // in minutes
+  
+  description       String?
+  notes             String?
+  
+  organizationId    String
+  buildingId        String
+  building          Building   @relation(fields: [buildingId], references: [id])
+  roomId            String?
+  room              Room?      @relation(fields: [roomId], references: [id])
+  
+  assignedManagerId String?
+  assignedManager   User?      @relation("AssignedTasks", fields: [assignedManagerId], references: [id])
+  
+  latitude          Float?
+  longitude         Float?
+
+  beforeImage       String?
+  afterImage        String?
+  
+  startTime         DateTime?
+  endTime           DateTime?
+  
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+  logs              ActivityLog[]
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  action    String
+  userId    String
+  payload   String?
+  createdAt DateTime @default(now())
+}
