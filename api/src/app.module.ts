@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { TasksModule } from './tasks/tasks.module';
 import { BuildingsModule } from './buildings/buildings.module';
 import { RoomsModule } from './rooms/rooms.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { ContractsModule } from './contracts/contracts.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { RoomsModule } from './rooms/rooms.module';
     TasksModule,
     BuildingsModule,
     RoomsModule,
+    DashboardModule,
+    ContractsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

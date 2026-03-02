@@ -10,6 +10,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // SQLite doesn't support enums, using String with validation in code
@@ -18,12 +19,13 @@ datasource db {
 // ENUM: SHOW_ROOM, MOVE_IN, MOVE_OUT, MAINTENANCE_CHECK, MAINTENANCE_SUPERVISION, PAYMENT_COLLECTION, ROOM_INSPECTION, FOLLOW_UP
 
 model Organization {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
   buildings Building[]
   users     User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  contracts Contract[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model User {
@@ -35,6 +37,7 @@ model User {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   tasks          Task[]       @relation("AssignedTasks")
+  contracts      Contract[]   @relation("ManagedContracts")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -50,20 +53,22 @@ model Building {
   organization   Organization @relation(fields: [organizationId], references: [id])
   rooms          Room[]
   tasks          Task[]
+  contracts      Contract[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
 
 model Room {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   number      String
   floor       Int
   buildingId  String
-  building    Building @relation(fields: [buildingId], references: [id])
+  building    Building   @relation(fields: [buildingId], references: [id])
   tasks       Task[]
-  status      String   // OCCUPIED, VACANT, MAINTENANCE
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  contracts   Contract[]
+  status      String     // OCCUPIED, VACANT, MAINTENANCE
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model Task {
@@ -101,6 +106,58 @@ model Task {
   logs              ActivityLog[]
 }
 
+// Khách thuê
+model Tenant {
+  id               String    @id @default(uuid())
+  name             String
+  phone            String?
+  idCard           String?   // CMND/CCCD
+  email            String?
+  isRepresentative Boolean   @default(false) // Người đại diện ký hợp đồng
+  notes            String?   // Ghi chú thêm về người ở
+  contractId       String
+  contract         Contract  @relation(fields: [contractId], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// Hợp đồng thuê phòng
+model Contract {
+  id              String    @id @default(uuid())
+  // Status flow: CONSULTING → DEPOSIT_REQUESTED → DEPOSITED → CONTRACT_SIGNED → ACTIVE → ENDED
+  status          String    @default("CONSULTING")
+
+  // Tài chính
+  monthlyRent     Float?    // Giá thuê/tháng
+  depositAmount   Float?    // Tiền đặt cọc
+  depositDate     DateTime? // Ngày đặt cọc
+
+  // Thời gian
+  moveInDate      DateTime? // Ngày nhận phòng
+  startDate       DateTime? // Ngày bắt đầu hợp đồng
+  endDate         DateTime? // Ngày kết thúc hợp đồng
+
+  // Ảnh chụp hợp đồng giấy — gửi về kế toán
+  contractImages  String?   // JSON array of image URLs
+
+  // Ghi chú vận hành
+  notes           String?
+
+  // Relations
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  buildingId      String
+  building        Building     @relation(fields: [buildingId], references: [id])
+  roomId          String
+  room            Room         @relation(fields: [roomId], references: [id])
+  managerId       String
+  manager         User         @relation("ManagedContracts", fields: [managerId], references: [id])
+  tenants         Tenant[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
 model ActivityLog {
   id        String   @id @default(uuid())
   taskId    String
@@ -110,3 +167,4 @@ model ActivityLog {
   payload   String?
   createdAt DateTime @default(now())
 }
+

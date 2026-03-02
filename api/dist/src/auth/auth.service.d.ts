@@ -15,5 +15,15 @@ export declare class AuthService {
             organizationId: any;
         };
     }>;
-    register(data: any): Promise<any>;
+    register(data: any): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        email: string;
+        password: string;
+        role: string;
+        deletedAt: Date | null;
+        organizationId: string;
+    }>;
 }

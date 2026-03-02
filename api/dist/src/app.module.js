@@ -15,6 +15,8 @@ const auth_module_1 = require("./auth/auth.module");
 const tasks_module_1 = require("./tasks/tasks.module");
 const buildings_module_1 = require("./buildings/buildings.module");
 const rooms_module_1 = require("./rooms/rooms.module");
+const dashboard_module_1 = require("./dashboard/dashboard.module");
+const contracts_module_1 = require("./contracts/contracts.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -26,6 +28,8 @@ exports.AppModule = AppModule = __decorate([
             tasks_module_1.TasksModule,
             buildings_module_1.BuildingsModule,
             rooms_module_1.RoomsModule,
+            dashboard_module_1.DashboardModule,
+            contracts_module_1.ContractsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
