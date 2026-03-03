@@ -38,7 +38,9 @@ model User {
   organization   Organization @relation(fields: [organizationId], references: [id])
   tasks          Task[]       @relation("AssignedTasks")
   contracts      Contract[]   @relation("ManagedContracts")
+  feedbacks      Feedback[]
   createdAt      DateTime     @default(now())
+
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
 }
@@ -49,6 +51,7 @@ model Building {
   address        String
   latitude       Float?
   longitude      Float?
+  clusterId      String?      // Cụm: Đống Đa, Ba Đình, Hai Bà Trưng, v.v.
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   rooms          Room[]
@@ -56,6 +59,7 @@ model Building {
   contracts      Contract[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  ledgerEntries  LedgerEntry[]
 }
 
 model Room {
@@ -66,9 +70,12 @@ model Room {
   building    Building   @relation(fields: [buildingId], references: [id])
   tasks       Task[]
   contracts   Contract[]
-  status      String     // OCCUPIED, VACANT, MAINTENANCE
+  status      String     // Occupied, Empty, Pending, Maintenance (Status_Matrix)
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  updatedAt      DateTime     @updatedAt
+  ledgerEntries  LedgerEntry[]
+  utilityReadings UtilityReading[]
+  violations      Violation[]
 }
 
 model Task {
@@ -104,7 +111,9 @@ model Task {
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime?
   logs              ActivityLog[]
+  feedbacks         Feedback[]
 }
+
 
 // Khách thuê
 model Tenant {
@@ -126,6 +135,7 @@ model Contract {
   id              String    @id @default(uuid())
   // Status flow: CONSULTING → DEPOSIT_REQUESTED → DEPOSITED → CONTRACT_SIGNED → ACTIVE → ENDED
   status          String    @default("CONSULTING")
+  contractType    String?   // 3M, 6M, 12M (For commission automation)
 
   // Tài chính
   monthlyRent     Float?    // Giá thuê/tháng
@@ -153,10 +163,120 @@ model Contract {
   managerId       String
   manager         User         @relation("ManagedContracts", fields: [managerId], references: [id])
   tenants         Tenant[]
+  feedbacks       Feedback[]
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  invoices        Invoice[]
+  ledgerEntries   LedgerEntry[]
+  violations      Violation[]
 }
+
+model Account {
+  id        String   @id // e.g., "111", "3386"
+  name      String
+  type      String   // ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE
+  level     Int      @default(1)
+  parentId  String?
+  parent    Account? @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children  Account[] @relation("AccountHierarchy")
+  
+  debitEntries  LedgerEntry[] @relation("DebitAccount")
+  creditEntries LedgerEntry[] @relation("CreditAccount")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerEntry {
+  id              String   @id @default(uuid())
+  date            DateTime @default(now())
+  description     String
+  amount          Float
+  
+  debitAccountId  String
+  debitAccount    Account  @relation("DebitAccount", fields: [debitAccountId], references: [id])
+  
+  creditAccountId String
+  creditAccount   Account  @relation("CreditAccount", fields: [creditAccountId], references: [id])
+  
+  contractId      String?
+  contract        Contract? @relation(fields: [contractId], references: [id])
+  
+  roomId          String?
+  room            Room?      @relation(fields: [roomId], references: [id])
+  
+  buildingId      String?
+  building        Building?  @relation(fields: [buildingId], references: [id])
+  
+  invoiceId       String?
+  invoice         Invoice?   @relation(fields: [invoiceId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Invoice {
+  id          String   @id @default(uuid())
+  contractId  String
+  contract    Contract @relation(fields: [contractId], references: [id])
+  
+  period      String   // e.g., "2026-03"
+  dueDate     DateTime
+  status      String   @default("DRAFT") // DRAFT, SENT, PAID, OVERDUE, CANCELLED
+  
+  items       String?  // JSON string
+  totalAmount Float
+  
+  ledgerEntries LedgerEntry[]
+  utilityReadings UtilityReading[]
+  violations      Violation[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UtilityReading {
+  id            String   @id @default(uuid())
+  roomId        String
+  room          Room     @relation(fields: [roomId], references: [id])
+  
+  type          String   // ELECTRICITY, WATER
+  readingDate   DateTime @default(now())
+  previousValue Float
+  currentValue  Float
+  consumption   Float
+  rate          Float
+  amount        Float
+  
+  invoiceId     String?
+  invoice       Invoice? @relation(fields: [invoiceId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Violation {
+  id          String   @id @default(uuid())
+  type        String   // ELECTRICITY, LAUNDRY, NOISE, etc.
+  count       Int      @default(1) // Lần 1, Lần 2...
+  amount      Float    @default(0)
+  description String?
+  date        DateTime @default(now())
+  
+  roomId      String
+  room        Room     @relation(fields: [roomId], references: [id])
+  
+  contractId  String?
+  contract    Contract? @relation(fields: [contractId], references: [id])
+  
+  invoiceId   String?
+  invoice     Invoice?  @relation(fields: [invoiceId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 
 model ActivityLog {
   id        String   @id @default(uuid())
@@ -167,4 +287,21 @@ model ActivityLog {
   payload   String?
   createdAt DateTime @default(now())
 }
+
+model Feedback {
+  id           String   @id @default(uuid())
+  content      String
+  type         String   @default("CHAT") // CHAT, SYSTEM, ALERT
+  category     String?  // UTILITY, MAINTENANCE, GENERAL
+  images       String?  // JSON array of image URLs
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  taskId       String?
+  task         Task?    @relation(fields: [taskId], references: [id])
+  contractId   String?
+  contract     Contract? @relation(fields: [contractId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 

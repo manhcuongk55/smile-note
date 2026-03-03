@@ -5,8 +5,8 @@ import { RouteService } from './route.service';
 import { RouteController } from './route.controller';
 
 @Module({
-    providers: [TasksService, RouteService],
-    controllers: [TasksController, RouteController],
-    exports: [TasksService, RouteService],
+  providers: [TasksService, RouteService],
+  controllers: [TasksController, RouteController],
+  exports: [TasksService, RouteService],
 })
-export class TasksModule { }
+export class TasksModule {}

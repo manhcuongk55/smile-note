@@ -1,7 +1,9 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { FinanceAutomationService } from '../finance-automation/finance-automation.service';
 export declare class ContractsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private financeAutomation;
+    constructor(prisma: PrismaService, financeAutomation: FinanceAutomationService);
     findAll(params?: {
         status?: string;
         buildingId?: string;
@@ -15,6 +17,7 @@ export declare class ContractsService {
             address: string;
             latitude: number | null;
             longitude: number | null;
+            clusterId: string | null;
         };
         room: {
             number: string;
@@ -50,6 +53,7 @@ export declare class ContractsService {
         buildingId: string;
         notes: string | null;
         roomId: string;
+        contractType: string | null;
         monthlyRent: number | null;
         depositAmount: number | null;
         depositDate: Date | null;
@@ -69,6 +73,7 @@ export declare class ContractsService {
             address: string;
             latitude: number | null;
             longitude: number | null;
+            clusterId: string | null;
         };
         room: {
             number: string;
@@ -105,6 +110,7 @@ export declare class ContractsService {
         buildingId: string;
         notes: string | null;
         roomId: string;
+        contractType: string | null;
         monthlyRent: number | null;
         depositAmount: number | null;
         depositDate: Date | null;
@@ -139,6 +145,7 @@ export declare class ContractsService {
             address: string;
             latitude: number | null;
             longitude: number | null;
+            clusterId: string | null;
         };
         room: {
             number: string;
@@ -170,6 +177,7 @@ export declare class ContractsService {
         buildingId: string;
         notes: string | null;
         roomId: string;
+        contractType: string | null;
         monthlyRent: number | null;
         depositAmount: number | null;
         depositDate: Date | null;
@@ -196,6 +204,7 @@ export declare class ContractsService {
             address: string;
             latitude: number | null;
             longitude: number | null;
+            clusterId: string | null;
         };
         room: {
             number: string;
@@ -227,6 +236,7 @@ export declare class ContractsService {
         buildingId: string;
         notes: string | null;
         roomId: string;
+        contractType: string | null;
         monthlyRent: number | null;
         depositAmount: number | null;
         depositDate: Date | null;
@@ -245,6 +255,7 @@ export declare class ContractsService {
         buildingId: string;
         notes: string | null;
         roomId: string;
+        contractType: string | null;
         monthlyRent: number | null;
         depositAmount: number | null;
         depositDate: Date | null;

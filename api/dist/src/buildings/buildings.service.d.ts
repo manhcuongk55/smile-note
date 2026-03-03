@@ -21,6 +21,7 @@ export declare class BuildingsService {
         address: string;
         latitude: number | null;
         longitude: number | null;
+        clusterId: string | null;
     })[]>;
     findOne(id: string): Promise<({
         rooms: {
@@ -41,6 +42,7 @@ export declare class BuildingsService {
         address: string;
         latitude: number | null;
         longitude: number | null;
+        clusterId: string | null;
     }) | null>;
     create(data: any): Promise<{
         id: string;
@@ -51,5 +53,6 @@ export declare class BuildingsService {
         address: string;
         latitude: number | null;
         longitude: number | null;
+        clusterId: string | null;
     }>;
 }

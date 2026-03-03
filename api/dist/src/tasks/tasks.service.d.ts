@@ -16,6 +16,7 @@ export declare class TasksService {
             address: string;
             latitude: number | null;
             longitude: number | null;
+            clusterId: string | null;
         };
         room: {
             number: string;
@@ -59,6 +60,7 @@ export declare class TasksService {
             address: string;
             latitude: number | null;
             longitude: number | null;
+            clusterId: string | null;
         };
         room: {
             number: string;

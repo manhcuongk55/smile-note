@@ -16,4 +16,4 @@ import { PassportModule } from '@nestjs/passport';
   controllers: [AuthController],
   exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

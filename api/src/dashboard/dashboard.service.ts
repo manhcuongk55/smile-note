@@ -3,23 +3,23 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class DashboardService {
-    constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-    async getStats() {
-        const pendingTasks = await this.prisma.task.count({
-            where: { status: 'PENDING', deletedAt: null },
-        });
+  async getStats() {
+    const pendingTasks = await this.prisma.task.count({
+      where: { status: 'PENDING', deletedAt: null },
+    });
 
-        const occupiedRooms = await this.prisma.room.count({
-            where: { status: 'OCCUPIED' },
-        });
+    const occupiedRooms = await this.prisma.room.count({
+      where: { status: 'OCCUPIED' },
+    });
 
-        const totalBuildings = await this.prisma.building.count();
+    const totalBuildings = await this.prisma.building.count();
 
-        return {
-            pendingTasks,
-            occupiedRooms,
-            totalBuildings,
-        };
-    }
+    return {
+      pendingTasks,
+      occupiedRooms,
+      totalBuildings,
+    };
+  }
 }

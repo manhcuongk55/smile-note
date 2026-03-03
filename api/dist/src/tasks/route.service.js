@@ -22,7 +22,8 @@ let RouteService = class RouteService {
         const dLat = this.toRad(lat2 - lat1);
         const dLon = this.toRad(lon2 - lon1);
         const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
+            Math.cos(this.toRad(lat1)) *
+                Math.cos(this.toRad(lat2)) *
                 Math.sin(dLon / 2) ** 2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
@@ -31,11 +32,16 @@ let RouteService = class RouteService {
     }
     priorityWeight(priority) {
         switch (priority) {
-            case 'URGENT': return 0.3;
-            case 'HIGH': return 0.6;
-            case 'MEDIUM': return 1.0;
-            case 'LOW': return 1.5;
-            default: return 1.0;
+            case 'URGENT':
+                return 0.3;
+            case 'HIGH':
+                return 0.6;
+            case 'MEDIUM':
+                return 1.0;
+            case 'LOW':
+                return 1.5;
+            default:
+                return 1.0;
         }
     }
     async getOptimizedRoute(managerId) {
@@ -46,20 +52,28 @@ let RouteService = class RouteService {
         if (managerId) {
             whereClause.assignedManagerId = managerId;
         }
-        const tasks = await this.prisma.task.findMany({
+        const tasks = (await this.prisma.task.findMany({
             where: whereClause,
             include: {
                 building: true,
                 room: true,
             },
-        });
+        }));
         if (tasks.length === 0) {
-            return { stops: [], totalDistanceKm: 0, estimatedMinutes: 0, taskCount: 0 };
+            return {
+                stops: [],
+                totalDistanceKm: 0,
+                estimatedMinutes: 0,
+                taskCount: 0,
+            };
         }
         const buildingMap = new Map();
         for (const task of tasks) {
             if (!buildingMap.has(task.buildingId)) {
-                buildingMap.set(task.buildingId, { building: task.building, tasks: [] });
+                buildingMap.set(task.buildingId, {
+                    building: task.building,
+                    tasks: [],
+                });
             }
             buildingMap.get(task.buildingId).tasks.push(task);
         }
@@ -137,7 +151,7 @@ let RouteService = class RouteService {
                     latitude: entry.building.latitude,
                     longitude: entry.building.longitude,
                 },
-                tasks: sortedTasks.map(t => ({
+                tasks: sortedTasks.map((t) => ({
                     id: t.id,
                     type: t.type,
                     priority: t.priority,

@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const finance_automation_service_1 = require("../finance-automation/finance-automation.service");
 let ContractsService = class ContractsService {
     prisma;
-    constructor(prisma) {
+    financeAutomation;
+    constructor(prisma, financeAutomation) {
         this.prisma = prisma;
+        this.financeAutomation = financeAutomation;
     }
     async findAll(params) {
         return this.prisma.contract.findMany({
@@ -54,9 +57,11 @@ let ContractsService = class ContractsService {
                 monthlyRent: data.monthlyRent,
                 depositAmount: data.depositAmount,
                 notes: data.notes,
-                tenants: data.tenants ? {
-                    create: data.tenants,
-                } : undefined,
+                tenants: data.tenants
+                    ? {
+                        create: data.tenants,
+                    }
+                    : undefined,
             },
             include: {
                 building: true,
@@ -67,11 +72,13 @@ let ContractsService = class ContractsService {
         return contract;
     }
     async updateStatus(id, status, extra) {
-        return this.prisma.contract.update({
+        const updatedContract = await this.prisma.contract.update({
             where: { id },
             data: {
                 status,
-                depositDate: extra?.depositDate ? new Date(extra.depositDate) : undefined,
+                depositDate: extra?.depositDate
+                    ? new Date(extra.depositDate)
+                    : undefined,
                 moveInDate: extra?.moveInDate ? new Date(extra.moveInDate) : undefined,
                 startDate: extra?.startDate ? new Date(extra.startDate) : undefined,
                 endDate: extra?.endDate ? new Date(extra.endDate) : undefined,
@@ -84,6 +91,10 @@ let ContractsService = class ContractsService {
                 tenants: true,
             },
         });
+        if (status === 'CONTRACT_SIGNED') {
+            await this.financeAutomation.calculateAndRecordCommission(id);
+        }
+        return updatedContract;
     }
     async addNote(id, note) {
         const contract = await this.prisma.contract.findUnique({ where: { id } });
@@ -104,7 +115,14 @@ let ContractsService = class ContractsService {
         });
     }
     async getStatusCounts() {
-        const statuses = ['CONSULTING', 'DEPOSIT_REQUESTED', 'DEPOSITED', 'CONTRACT_SIGNED', 'ACTIVE', 'ENDED'];
+        const statuses = [
+            'CONSULTING',
+            'DEPOSIT_REQUESTED',
+            'DEPOSITED',
+            'CONTRACT_SIGNED',
+            'ACTIVE',
+            'ENDED',
+        ];
         const counts = {};
         for (const status of statuses) {
             counts[status] = await this.prisma.contract.count({ where: { status } });
@@ -116,6 +134,7 @@ let ContractsService = class ContractsService {
 exports.ContractsService = ContractsService;
 exports.ContractsService = ContractsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        finance_automation_service_1.FinanceAutomationService])
 ], ContractsService);
 //# sourceMappingURL=contracts.service.js.map

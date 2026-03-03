@@ -12,6 +12,7 @@ export declare class TasksController {
             address: string;
             latitude: number | null;
             longitude: number | null;
+            clusterId: string | null;
         };
         room: {
             number: string;
@@ -55,6 +56,7 @@ export declare class TasksController {
             address: string;
             latitude: number | null;
             longitude: number | null;
+            clusterId: string | null;
         };
         room: {
             number: string;

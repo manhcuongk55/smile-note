@@ -17,6 +17,11 @@ const buildings_module_1 = require("./buildings/buildings.module");
 const rooms_module_1 = require("./rooms/rooms.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const contracts_module_1 = require("./contracts/contracts.module");
+const finance_automation_module_1 = require("./finance-automation/finance-automation.module");
+const accounting_module_1 = require("./accounting/accounting.module");
+const rule_engine_module_1 = require("./rule-engine/rule-engine.module");
+const compliance_module_1 = require("./compliance/compliance.module");
+const utility_billing_module_1 = require("./utility-billing/utility-billing.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,6 +35,11 @@ exports.AppModule = AppModule = __decorate([
             rooms_module_1.RoomsModule,
             dashboard_module_1.DashboardModule,
             contracts_module_1.ContractsModule,
+            finance_automation_module_1.FinanceAutomationModule,
+            accounting_module_1.AccountingModule,
+            rule_engine_module_1.RuleEngineModule,
+            compliance_module_1.ComplianceModule,
+            utility_billing_module_1.UtilityBillingModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
