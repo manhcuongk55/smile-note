@@ -1,0 +1,30 @@
+@startuml feedback_flow_v1_0
+actor User
+participant "UI: FeedbackChat" as UI
+participant "API: /api/feedback" as API
+participant "Service: Prisma" as DB
+database "SQLite/PostgreSQL" as Store
+
+== Initializing Feedback ==
+User -> UI: Navigates to Task/Contract Detail
+UI -> API: GET /api/feedback?taskId={id} 
+UI -> API: (Polling every 5s)
+API -> DB: prisma.feedback.findMany({ where: { taskId } })
+DB -> Store: SELECT * FROM Feedback
+Store --> DB: Results
+DB --> API: Feedback data
+API --> UI: JSON Response
+UI -> User: Display Messages
+
+== Sending Feedback ==
+User -> UI: Writes content and clicks Send
+UI -> User: (Optimistic UI update)
+UI -> API: POST /api/feedback { content, taskId, userId }
+API -> DB: prisma.feedback.create({ data })
+DB -> Store: INSERT INTO Feedback
+Store --> DB: Success
+DB --> API: New Feedback object
+API --> UI: JSON Response
+UI -> User: Final Message State
+
+@enduml
